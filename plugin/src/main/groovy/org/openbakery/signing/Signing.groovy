@@ -13,7 +13,7 @@ class Signing {
 
 
 	String identity
-	String certificateURI
+	List<String> certificateURI = null
 	String certificatePassword
 	List<String> mobileProvisionURI = null
 	String keychainPassword = "This_is_the_default_keychain_password"
@@ -48,7 +48,7 @@ class Signing {
 			if (this.keychain != null) {
 				return this.keychain
 			}
-			return new File(this.signingDestinationRoot, keychainName)
+			return new File(this.signingDestinationRoot as File, keychainName)
 		}
 
 		this.mobileProvisionDestinationRoot = {
@@ -80,6 +80,15 @@ class Signing {
 
 	void setMobileProvisionDestinationRoot(Object mobileProvisionDestinationRoot) {
 		this.mobileProvisionDestinationRoot = mobileProvisionDestinationRoot
+	}
+
+	void setCertificateURI(def value) {
+		if (value instanceof List) {
+			this.certificateURI = value;
+		} else {
+			this.certificateURI = new ArrayList<String>();
+			this.certificateURI.add(value.toString());
+		}
 	}
 
 	void setMobileProvisionURI(Object mobileProvisionURI) {

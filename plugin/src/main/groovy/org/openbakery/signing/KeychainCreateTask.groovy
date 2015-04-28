@@ -58,7 +58,6 @@ class KeychainCreateTask extends AbstractKeychainTask {
 			throw new InvalidUserDataException("Property project.xcodebuild.signing.certificatePassword is missing")
 		}
 
-		def certificateFile = download(project.xcodebuild.signing.signingDestinationRoot, project.xcodebuild.signing.certificateURI)
 
 		def keychainPath = project.xcodebuild.signing.keychainPathInternal.absolutePath
 
@@ -67,8 +66,11 @@ class KeychainCreateTask extends AbstractKeychainTask {
 		if (!new File(keychainPath).exists()) {
 			commandRunner.run(["security", "create-keychain", "-p", project.xcodebuild.signing.keychainPassword, keychainPath])
 		}
-		commandRunner.run(["security", "-v", "import", certificateFile, "-k", keychainPath, "-P", project.xcodebuild.signing.certificatePassword, "-T", "/usr/bin/codesign"])
 
+		project.xcodebuild.signing.certificateURI.each {
+			def certificateFile = download(project.xcodebuild.signing.signingDestinationRoot, it)
+			commandRunner.run(["security", "-v", "import", certificateFile, "-k", keychainPath, "-P", project.xcodebuild.signing.certificatePassword, "-T", "/usr/bin/codesign"])
+		}
 
 		if (getOSVersion().minor >= 9) {
 
