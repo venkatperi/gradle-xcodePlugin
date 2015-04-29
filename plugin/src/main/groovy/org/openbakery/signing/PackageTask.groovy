@@ -12,14 +12,12 @@ import org.openbakery.XcodePlugin
  */
 class PackageTask extends AbstractDistributeTask {
 
-
 	public static final String PACKAGE_PATH = "package"
-	File outputPath = new File(project.getBuildDir(), PACKAGE_PATH)
-
+	@Lazy File outputPath = new File(project.getBuildDir(), PACKAGE_PATH)
 
 	private List<File> appBundles
 
-	String applicationBundleName
+	@Lazy String applicationBundleName = "${applicationNameFromArchive}.app"
 
 	PackageTask() {
 		super();
@@ -44,12 +42,7 @@ class PackageTask extends AbstractDistributeTask {
 
 		File applicationFolder = createApplicationFolder();
 
-		def applicationName = getApplicationNameFromArchive()
-		copy(getApplicationBundleDirectory(), applicationFolder)
-
-
-		applicationBundleName = applicationName + ".app"
-
+		copy(applicationBundleDirectory, applicationFolder)
 
 		appBundles = getAppBundles(applicationFolder, applicationBundleName)
 
@@ -66,7 +59,6 @@ class PackageTask extends AbstractDistributeTask {
 		} catch (CommandRunnerException ex) {
 			// ignore, this means that the CFBundleResourceSpecification was not in the infoPlist
 		}
-
 
 		for (File bundle : appBundles) {
 

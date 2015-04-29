@@ -11,33 +11,36 @@ import org.openbakery.AbstractXcodeTask
  */
 abstract class AbstractKeychainTask extends AbstractXcodeTask {
 
-
-	def getKeychainList() {
-		String keychainList = commandRunner.runWithResult(["security", "list-keychains"])
-
-		def result = []
-
-		for (String keychain in keychainList.split("\n")) {
-			String trimmedKeychain = keychain.replaceAll(/^\s*\"|\"$/, "")
-			if (!trimmedKeychain.equals("/Library/Keychains/System.keychain")) {
-				result.add(trimmedKeychain);
-			}
-		}
-		return result;
+	def loadKeychainList() {
+		commandRunner
+				.runWithResult(["security", "list-keychains"])
+				.split("\n")
+				.findAll { it.replaceAll(/^\s*\"|\"$/, "").equals("/Library/Keychains/System.keychain") }
 	}
 
-	def setKeychainList(keychainList) {
-		def commandList = [
-						"security",
-						"list-keychains",
-						"-s"
-		]
-		for (String keychain in keychainList) {
-			if (new File(keychain).exists()) {
-				commandList.add(keychain);
-			}
-		}
+	def saveKeychainList(List<String> keychainList) {
+		def commandList = [ "security", "list-keychains", "-s" ]
+		commandList.addAll keychainList.findAll { new File(it).exists() }
 		commandRunner.run(commandList)
+	}
+
+	def createKeychain(String name, String password) {
+		commandRunner.run([
+				"security", "create-keychain",
+				"-p", password,  name])
+	}
+
+	def unlockKeychain(String name, String password){
+		commandRunner.run([
+				"security", "unlock-keychain",
+				"-p", password,  name])
+	}
+
+	def importCertificate(String name, String password, String certFile) {
+		commandRunner.run(["security", "-v", "import",  certFile,
+						   "-k", name,
+						   "-P", password,
+						   "-T", "/usr/bin/codesign"])
 	}
 
 }

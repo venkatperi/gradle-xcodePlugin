@@ -37,7 +37,7 @@ class ProvisioningProfileIdReaderTest {
         project.xcodebuild.productName = 'Example'
         project.xcodebuild.productType = 'app'
         project.xcodebuild.sdk = XcodePlugin.SDK_MACOSX
-        project.xcodebuild.signing.keychain = "/var/tmp/gradle.keychain"
+        project.xcodebuild.signing.keychain = project.file("/var/tmp/gradle.keychain")
 
         packageTask = project.getTasks().getByPath(XcodePlugin.PACKAGE_TASK_NAME)
 

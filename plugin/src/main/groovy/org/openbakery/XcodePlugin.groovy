@@ -15,6 +15,7 @@
  */
 package org.openbakery
 
+import aQute.bnd.annotation.Export
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -34,6 +35,7 @@ import org.openbakery.coverage.CoverageTask
 import org.openbakery.deploygate.DeployGateCleanTask
 import org.openbakery.deploygate.DeployGatePluginExtension
 import org.openbakery.deploygate.DeployGateUploadTask
+import org.openbakery.export.ExportExtension
 import org.openbakery.hockeyapp.HockeyAppCleanTask
 import org.openbakery.hockeyapp.HockeyAppPluginExtension
 import org.openbakery.hockeyapp.HockeyAppUploadTask
@@ -102,6 +104,9 @@ class XcodePlugin implements Plugin<Project> {
 	public static final String SPARKLE_CLEAN_TASK_NAME = 'sparkleClean'
 	public static final String COCOAPODS_TASK_NAME = 'cocoapods'
 
+	public static final String EXPORT_TASK_NAME = 'export'
+	public static final String EXPORT_CLEAN_TASK_NAME = 'exportClean'
+
 	public static final String APPLEDOC_TASK_NAME = 'appledoc'
 	public static final String APPLEDOC_CLEAN_TASK_NAME = 'appledocClean'
 
@@ -112,8 +117,8 @@ class XcodePlugin implements Plugin<Project> {
 	public static final String SDK_IPHONESIMULATOR = "iphonesimulator"
 
 
-
     void apply(Project project) {
+
 		project.getPlugins().apply(BasePlugin.class);
 
 		System.setProperty("java.awt.headless", "true");
@@ -458,7 +463,6 @@ class XcodePlugin implements Plugin<Project> {
 	private void configureAppledoc(Project project) {
 		project.task(APPLEDOC_TASK_NAME, type: AppledocTask, group: APPLE_DOC_GROUP_NAME)
 		project.task(APPLEDOC_CLEAN_TASK_NAME, type: AppledocCleanTask, group: APPLE_DOC_GROUP_NAME)
-
 	}
 
 	private void configureCoverage(Project project) {

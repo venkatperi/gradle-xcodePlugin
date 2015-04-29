@@ -77,7 +77,7 @@ class HockeyKitImageTask extends AbstractHockeyKitTask {
 
 	@TaskAction
 	def imageCreate() {
-		def infoplist = getAppBundleInfoPlist()
+		def infoplist = _getAppBundleInfoPlist()
 		logger.debug("infoplist: {}", infoplist)
 
 

@@ -23,22 +23,18 @@ class XcodeBuildArchiveTask extends AbstractXcodeTask {
 
 	public static final String ARCHIVE_FOLDER = "archive"
 
+	@Lazy def outputDirectory = {
+		def dir = new File(project.getBuildDir(), ARCHIVE_FOLDER)
+		dir.mkdirs()
+		return dir
+	}()
+
     XcodeBuildArchiveTask() {
 		super()
 
 		dependsOn(XcodePlugin.XCODE_BUILD_TASK_NAME)
 		this.description = "Prepare the app bundle that it can be archive"
 	}
-
-
-	def getOutputDirectory() {
-		def archiveDirectory = new File(project.getBuildDir(), ARCHIVE_FOLDER)
-		archiveDirectory.mkdirs()
-		return archiveDirectory
-	}
-
-
-
 
 	def getiOSIcons() {
 		ArrayList<String> icons = new ArrayList<>();

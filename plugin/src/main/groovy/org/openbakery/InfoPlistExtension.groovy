@@ -32,15 +32,8 @@ class InfoPlistExtension {
 
 	def List<String> commands = null
 
-
-
 	void setCommands(Object commands) {
-		if (commands instanceof List) {
-			this.commands = commands;
-		} else {
-			this.commands = new ArrayList<String>();
-			this.commands.add(commands.toString());
-		}
+		this.commands = commands instanceof List ? commands : [ commands.toString() ]
 	}
 
 }

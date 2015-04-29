@@ -40,8 +40,6 @@ class PackageTaskOSXTest {
 		mockControl = new GMockController()
 		commandRunnerMock = mockControl.mock(CommandRunner)
 
-
-
 		projectDir = new File(System.getProperty("java.io.tmpdir"), "gradle-xcodebuild")
 		project = ProjectBuilder.builder().withProjectDir(projectDir).build()
 		project.buildDir = new File(projectDir, 'build').absoluteFile
@@ -49,10 +47,10 @@ class PackageTaskOSXTest {
 		project.xcodebuild.productName = 'Example'
 		project.xcodebuild.productType = 'app'
 		project.xcodebuild.sdk = XcodePlugin.SDK_MACOSX
-		project.xcodebuild.signing.keychain = "/var/tmp/gradle.keychain"
+		project.xcodebuild.signing.keychain = project.file("/var/tmp/gradle.keychain")
 		project.xcodebuild.signing.identity = 'iPhone Developer: Firstname Surename (AAAAAAAAAA)'
 
-		packageTask = project.getTasks().getByPath(XcodePlugin.PACKAGE_TASK_NAME)
+		packageTask = project.tasks.getByPath(XcodePlugin.PACKAGE_TASK_NAME)
 		packageTask.plistHelper = new PlistHelper(project, commandRunnerMock)
 
 		packageTask.setProperty("commandRunner", commandRunnerMock)

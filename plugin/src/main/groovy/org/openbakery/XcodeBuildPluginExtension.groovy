@@ -21,15 +21,11 @@ import org.apache.commons.io.filefilter.SuffixFileFilter
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
+import org.openbakery.export.ExportExtension
 import org.openbakery.signing.Signing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-enum Devices {
-	UNIVERSAL,
-	PHONE,
-	PAD
-}
 
 class XcodeBuildPluginExtension {
 	public final static KEYCHAIN_NAME_BASE = "gradle-"
@@ -49,6 +45,7 @@ class XcodeBuildPluginExtension {
 	Object sharedPrecompsDir
 	String sourceDirectory = '.'
 	Signing signing = null
+	List<ExportExtension> exports = []
 	def additionalParameters = null
 	String bundleNameSuffix = null
 	List<String> arch = null
@@ -67,6 +64,9 @@ class XcodeBuildPluginExtension {
 	String xcodePath = null
 	CommandRunner commandRunner
 	VariableResolver variableResolver;
+
+	@Lazy String archiveDirectoryName = _archiveDirectoryName()
+	@Lazy def archiveDirectory= _archiveDirectory()
 
 	/**
 	 * internal parameters
@@ -146,6 +146,12 @@ class XcodeBuildPluginExtension {
 		ConfigureUtil.configure(closure, this.signing)
 	}
 
+	void exportArchive(Closure closure) {
+		def exp = new ExportExtension(this.project)
+		ConfigureUtil.configure(closure, exp)
+		exp.createTask()
+		exports.add exp
+	}
 
 	boolean isDeviceBuild() {
 		return this.isSDK(XcodePlugin.SDK_IPHONEOS)
@@ -416,21 +422,21 @@ class XcodeBuildPluginExtension {
 	}
 
 
-
-	File getArchiveDirectory() {
-
-		def archiveDirectoryName =  XcodeBuildArchiveTask.ARCHIVE_FOLDER + "/" +  project.xcodebuild.bundleName
+	def _archiveDirectoryName() {
+		def name =  XcodeBuildArchiveTask.ARCHIVE_FOLDER + "/" +  project.xcodebuild.bundleName
 
 		if (project.xcodebuild.bundleNameSuffix != null) {
-			archiveDirectoryName += project.xcodebuild.bundleNameSuffix
+			name += project.xcodebuild.bundleNameSuffix
 		}
-		archiveDirectoryName += ".xcarchive"
-
-		def archiveDirectory = new File(project.getBuildDir(), archiveDirectoryName)
-		archiveDirectory.mkdirs()
-		return archiveDirectory
+		name += ".xcarchive"
+		return name
 	}
 
+	def _archiveDirectory() {
+		def dir = new File(project.buildDir, archiveDirectoryName)
+		dir.mkdirs()
+		return dir
+	}
 
 	boolean isSDK(String expectedSDK) {
 		return sdk.toLowerCase().startsWith(expectedSDK)

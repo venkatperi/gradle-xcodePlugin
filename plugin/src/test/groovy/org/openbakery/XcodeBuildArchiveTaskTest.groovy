@@ -44,7 +44,7 @@ class XcodeBuildArchiveTaskTest {
 		project.xcodebuild.productName = 'Example'
 		project.xcodebuild.productType = 'app'
 		project.xcodebuild.sdk = XcodePlugin.SDK_IPHONEOS
-		project.xcodebuild.signing.keychain = "/var/tmp/gradle.keychain"
+		project.xcodebuild.signing.keychain = project.file("/var/tmp/gradle.keychain")
 
 		xcodeBuildArchiveTask = project.getTasks().getByPath(XcodePlugin.ARCHIVE_TASK_NAME)
 		xcodeBuildArchiveTask.plistHelper = new PlistHelper(project, commandRunnerMock)

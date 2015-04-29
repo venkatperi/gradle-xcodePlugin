@@ -16,7 +16,6 @@
 package org.openbakery.hockeykit
 
 import org.openbakery.AbstractDistributeTask
-import org.openbakery.PlistHelper
 
 /**
  *
@@ -31,7 +30,7 @@ abstract class AbstractHockeyKitTask extends AbstractDistributeTask {
 	 * @return the output directory as absolute path
 	 */
 	def getOutputDirectory() {
-		def infoplist = getAppBundleInfoPlist()
+		def infoplist = _getAppBundleInfoPlist()
 		def bundleIdentifier = plistHelper.getValueFromPlist(infoplist, "CFBundleIdentifier")
 		File outputDirectory = new File(project.hockeykit.outputDirectory, bundleIdentifier + "/" + project.hockeykit.versionDirectoryName)
 		if (!outputDirectory.exists()) {

@@ -26,7 +26,7 @@ class KeychainCleanupTask extends AbstractKeychainTask {
 	}
 
 	def deleteKeychain() {
-		for (String keychain : getKeychainList()) {
+		for (String keychain : loadKeychainList()) {
 			File keychainFile = new File(keychain)
 			if (!keychainFile.exists()) {
 				if (keychainFile.name.startsWith(XcodeBuildPluginExtension.KEYCHAIN_NAME_BASE)) {
@@ -62,7 +62,7 @@ class KeychainCleanupTask extends AbstractKeychainTask {
 		project.xcodebuild.signing.signingDestinationRoot.deleteDir()
 
 		if (getOSVersion().minor >= 9) {
-			setKeychainList(getKeychainList())
+			saveKeychainList(loadKeychainList())
 		} else {
 			deleteKeychain()
 		}

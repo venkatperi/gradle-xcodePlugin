@@ -33,14 +33,14 @@ class XcodeBuildArchiveTaskOSXTest {
 		projectDir = new File(System.getProperty("java.io.tmpdir"), "gradle-xcodebuild")
 		project = ProjectBuilder.builder().withProjectDir(projectDir).build()
 		project.buildDir = new File(projectDir, 'build').absoluteFile
-		project.apply plugin: org.openbakery.XcodePlugin
+		project.apply plugin: XcodePlugin
 		project.xcodebuild.infoPlist = 'Info.plist'
 		project.xcodebuild.productName = 'Example'
 		project.xcodebuild.productType = 'app'
 		project.xcodebuild.sdk = XcodePlugin.SDK_MACOSX
-		project.xcodebuild.signing.keychain = "/var/tmp/gradle.keychain"
+		project.xcodebuild.signing.keychain = project.file("/var/tmp/gradle.keychain")
 
-		xcodeBuildArchiveTask = project.getTasks().getByPath(XcodePlugin.ARCHIVE_TASK_NAME)
+		xcodeBuildArchiveTask = project.tasks.getByPath(XcodePlugin.ARCHIVE_TASK_NAME)
 
 		buildOutputDirectory = new File(project.xcodebuild.symRoot, project.xcodebuild.configuration)
 		buildOutputDirectory.mkdirs()
@@ -142,11 +142,8 @@ class XcodeBuildArchiveTaskOSXTest {
 
 		File infoPlistToConvert = new File(projectDir, "build/archive/Example.xcarchive/Products/Applications/Example.app/Info.plist")
 
-		List<String> commandList
-		commandList?.clear()
-		commandList = ["/usr/bin/plutil", "-convert", "binary1", infoPlistToConvert.absolutePath]
+		def commandList = ["/usr/bin/plutil", "-convert", "binary1", infoPlistToConvert.absolutePath]
 		commandRunnerMock.run(commandList).times(0)
-
 
 		mockControl.play {
 			xcodeBuildArchiveTask.archive()

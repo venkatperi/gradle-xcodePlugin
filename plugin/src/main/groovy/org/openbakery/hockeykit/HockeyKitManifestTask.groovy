@@ -17,7 +17,6 @@ package org.openbakery.hockeykit
 
 import org.gradle.api.tasks.TaskAction
 import groovy.xml.MarkupBuilder
-import org.openbakery.PlistHelper
 import org.openbakery.XcodePlugin
 
 class HockeyKitManifestTask extends AbstractHockeyKitTask {
@@ -36,7 +35,7 @@ class HockeyKitManifestTask extends AbstractHockeyKitTask {
 	def createManifest() {
 
 
-		def infoPlist = getAppBundleInfoPlist()
+		def infoPlist = _getAppBundleInfoPlist()
 
 		def bundleIdentifier = plistHelper.getValueFromPlist(infoPlist, "CFBundleIdentifier")
 		def bundleVersion = plistHelper.getValueFromPlist(infoPlist, "CFBundleVersion")

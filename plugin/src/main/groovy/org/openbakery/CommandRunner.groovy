@@ -60,16 +60,17 @@ class CommandRunner {
 		commandList.each {
 			item -> result += item + " "
 		}
-		return "'" + result.trim() + "'"
+		return "'${result.trim()}'"
 	}
 
 	def run(String directory, List<String> commandList, Map<String, String> environment, OutputAppender outputAppender) {
-
 		logger.debug("Run command: {}", commandListToString(commandList))
 		if (environment != null) {
 			logger.debug("with additional environment variables: {}", environment)
 		}
-		def processBuilder = new ProcessBuilder(commandList)
+
+		def processBuilder = new ProcessBuilder( commandList.collect{ it.toString() } )
+//		processBuilder.inheritIO()
 		processBuilder.redirectErrorStream(true)
 		processBuilder.directory(new File(directory))
 		if (environment != null) {
@@ -78,16 +79,13 @@ class CommandRunner {
 		}
 		def process = processBuilder.start()
 
-
 		processInputStream(process.inputStream, outputAppender)
-
 
 		process.waitFor()
 		readerThread.join()
 		if (process.exitValue() > 0) {
 			throw new CommandRunnerException("Command failed to run (exit code " + process.exitValue() + "): " + commandListToString(commandList))
 		}
-
 	}
 
 	void processInputStream(InputStream inputStream, OutputAppender outputAppender) {

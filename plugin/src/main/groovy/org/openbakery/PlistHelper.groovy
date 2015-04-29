@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
  * Created by Stefan Gugarel on 02/03/15.
  */
 class PlistHelper {
-
 	private static Logger logger = LoggerFactory.getLogger(PlistHelper.class)
 
 	private Project project
@@ -37,41 +36,22 @@ class PlistHelper {
 					"/usr/libexec/PlistBuddy",
 					plist,
 					"-c",
-					"Print :" + key])
+					"Print :$key"])
 
-			if (result.startsWith("Array {")) {
-
-				ArrayList<String> resultArray = new ArrayList<String>();
-
-				String[] tokens = result.split("\n");
-
-				for (int i = 1; i < tokens.length - 1; i++) {
-					resultArray.add(tokens[i].trim());
-				}
-				return resultArray;
-			}
-			return result;
-		} catch (IllegalStateException ex) {
-			return null
-		} catch (CommandRunnerException ex) {
-			return null
+			result.startsWith("Array {") ?  result.split("\n").collect{ it.trim() } : result
+		} catch (IllegalStateException ignored) {
 		}
 	}
 
-	String setValueForPlist(def plist, String key, String value) {
-		setValueForPlist(plist, "Set :" + key + " " + value)
+	def setValueForPlist(def plist, String key, String value) {
+		setValueForPlist(plist, "Set :$key $value")
 	}
 
+	def setValueForPlist(def plist, String command) {
+		File infoPlistFile = plist instanceof File ? plist : new File(project.projectDir, plist)
 
-	String setValueForPlist(def plist, String command) {
-		File infoPlistFile;
-		if (plist instanceof File) {
-			infoPlistFile = plist
-		} else {
-			infoPlistFile = new File(project.projectDir, plist)
-		}
 		if (!infoPlistFile.exists()) {
-			throw new IllegalStateException("Info Plist does not exist: " + infoPlistFile.absolutePath);
+			throw new IllegalStateException("Info Plist does not exist: $infoPlistFile.absolutePath");
 		}
 
 		logger.debug("Set Info Plist Value: {}", command)

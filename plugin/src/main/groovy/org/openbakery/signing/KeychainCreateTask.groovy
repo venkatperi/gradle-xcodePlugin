@@ -17,16 +17,25 @@ package org.openbakery.signing
 
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.openbakery.XcodePlugin
 
 class KeychainCreateTask extends AbstractKeychainTask {
 
+	@Lazy def keychainPath = project.xcodebuild.signing.keychainPathInternal.absolutePath
+	@Lazy Signing signing = project.xcodebuild.signing
 
 	KeychainCreateTask() {
 		super()
 		this.description = "Create a keychain that is used for signing the app"
 
-		dependsOn(XcodePlugin.KEYCHAIN_CLEAN_TASK_NAME)
+//		dependsOn(XcodePlugin.KEYCHAIN_CLEAN_TASK_NAME)
+
+		if (!signing.keychain) {
+			if (signing.certificateURI)
+				inputs.file(signing.certificateURI)
+			outputs.file(keychainPath)
+		}
 
 		this.setOnlyIf {
 			return !project.xcodebuild.isSDK(XcodePlugin.SDK_IPHONESIMULATOR)
@@ -34,8 +43,7 @@ class KeychainCreateTask extends AbstractKeychainTask {
 	}
 
 	@TaskAction
-	def create() {
-
+	def create(IncrementalTaskInputs inputs) {
 
 		if (project.xcodebuild.isSDK(XcodePlugin.SDK_IPHONESIMULATOR)) {
 			logger.lifecycle("The simulator build does not need a provisioning profile");
@@ -53,36 +61,37 @@ class KeychainCreateTask extends AbstractKeychainTask {
 			return
 		}
 
-
 		if (project.xcodebuild.signing.certificatePassword == null) {
 			throw new InvalidUserDataException("Property project.xcodebuild.signing.certificatePassword is missing")
 		}
 
-
-		def keychainPath = project.xcodebuild.signing.keychainPathInternal.absolutePath
-
 		logger.debug("Create Keychain: {}", keychainPath)
 
-		if (!new File(keychainPath).exists()) {
-			commandRunner.run(["security", "create-keychain", "-p", project.xcodebuild.signing.keychainPassword, keychainPath])
-		}
+		def file = new File(keychainPath)
+		inputs.outOfDate { file.delete() }
+		inputs.removed { file.delete() }
 
-		project.xcodebuild.signing.certificateURI.each {
-			def certificateFile = download(project.xcodebuild.signing.signingDestinationRoot, it)
-			commandRunner.run(["security", "-v", "import", certificateFile, "-k", keychainPath, "-P", project.xcodebuild.signing.certificatePassword, "-T", "/usr/bin/codesign"])
+		if (!file.exists()) {
+			createKeychain keychainPath, project.xcodebuild.signing.keychainPassword
+
+			project.xcodebuild.signing.certificateURI.each {
+				def certificateFile = download(project.xcodebuild.signing.signingDestinationRoot, it)
+				importCertificate keychainPath, project.xcodebuild.signing.certificatePassword, certificateFile
+			}
 		}
 
 		if (getOSVersion().minor >= 9) {
-
-			def keychainList = getKeychainList()
+			def keychainList = loadKeychainList()
 			keychainList.add(keychainPath)
-			setKeychainList(keychainList)
+			saveKeychainList(keychainList)
 		}
 
 		// Set a custom timeout on the keychain if requested
-		if (project.xcodebuild.signing.timeout != null) {
+		if (project.xcodebuild.signing.timeout > 0) {
 			commandRunner.run(["security", "-v", "set-keychain-settings", "-lut", project.xcodebuild.signing.timeout.toString(), keychainPath])
 		}
+
+		unlockKeychain keychainPath, project.xcodebuild.signing.keychainPassword
 	}
 
 

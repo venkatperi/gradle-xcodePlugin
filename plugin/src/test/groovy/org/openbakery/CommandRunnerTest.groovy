@@ -21,7 +21,7 @@ class CommandRunnerTest {
 	void testRunWithResult() {
 		String result = commandRunner.runWithResult(["echo", "test"])
 
-		assert "test".equals(result) : "the result should be test, but was: " + result
+		assert "test".equals(result) : "the result should be test, but was: '$result'"
 
 	}
 

@@ -1,8 +1,6 @@
 package org.openbakery
 
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.FilenameUtils
-import org.gradle.api.DefaultTask
 import org.openbakery.signing.PackageTask
 
 /**
@@ -11,34 +9,35 @@ import org.openbakery.signing.PackageTask
  */
 class AbstractDistributeTask extends AbstractXcodeTask {
 
-	private File archiveDirectory;
+	private File _archiveDirectory;
 
-	File getApplicationBundleDirectory() {
-		File appBundleDirectory = new File(getArchiveDirectory(), "Products/Applications/" + getApplicationNameFromArchive() + ".app")
+	@Lazy def applicationNameFromArchive = archiveDirectory.name - ".xcarchive"
+
+	@Lazy File applicationBundleDirectory = _getApplicationBundleDirectory()
+
+	@Lazy File appBundleInfoPlist = _getAppBundleInfoPlist()
+
+	File _getApplicationBundleDirectory() {
+		File appBundleDirectory = new File(archiveDirectory, "Products/Applications/${applicationNameFromArchive}.app")
 		if (!appBundleDirectory.exists()) {
-			throw new IllegalStateException("app directory not found: " + appBundleDirectory.absolutePath);
+			throw new IllegalStateException("app directory not found: $appBundleDirectory.absolutePath");
 		}
 		return appBundleDirectory;
 	}
 
-
-	def getAppBundleInfoPlist() {
-
-		File infoPlist = new File(getApplicationBundleDirectory(), "Info.plist")
-
+	def _getAppBundleInfoPlist() {
+		File infoPlist = new File(applicationBundleDirectory, "Info.plist")
 		if (!infoPlist.exists()) {
-			throw new IllegalStateException("Info.plist not found: " + infoPlist.absolutePath);
+			throw new IllegalStateException("Info.plist not found: $infoPlist.absolutePath");
 		}
 		return infoPlist;
 	}
 
-
-
-	File getDestinationFile(File outputDirectory, String extension) {
+	def getDestinationFile = { File outputDirectory, String extension ->
 		if (project.xcodebuild.bundleNameSuffix != null) {
-			return new File(outputDirectory, getApplicationNameFromArchive() + project.xcodebuild.bundleNameSuffix + extension)
+			return new File(outputDirectory, "${applicationNameFromArchive}$project.xcodebuild.bundleNameSuffix$extension")
 		}
-		return new File(outputDirectory, getApplicationNameFromArchive() + extension)
+		return new File(outputDirectory, "${applicationNameFromArchive}$extension")
 	}
 
 	File getDestinationBundleFile(File outputDirectory, File bundle) {
@@ -60,8 +59,6 @@ class AbstractDistributeTask extends AbstractXcodeTask {
 		if (!outputDirectory.exists()) {
 			outputDirectory.mkdirs()
 		}
-
-
 
 		File destinationBundle = getDestinationBundleFile(outputDirectory, bundle)
 		FileUtils.copyFile(getIpaBundle()	, destinationBundle)
@@ -98,8 +95,6 @@ class AbstractDistributeTask extends AbstractXcodeTask {
 		return new File(packageDirectory, fileList.get(0))
 	}
 
-
-
 	File getDSymBundle() {
 		File dSym = new File(getArchiveDirectory(), "dSYMs/" + getApplicationNameFromArchive() + ".app.dSYM");
 		if (!dSym.exists()) {
@@ -108,11 +103,9 @@ class AbstractDistributeTask extends AbstractXcodeTask {
 		return dSym;
 	}
 
-
-
 	def getArchiveDirectory() {
-		if (archiveDirectory != null) {
-			return archiveDirectory;
+		if (_archiveDirectory != null) {
+			return _archiveDirectory;
 		}
 		File archiveDirectory = new File(project.getBuildDir(), XcodeBuildArchiveTask.ARCHIVE_FOLDER)
 		if (!archiveDirectory.exists()) {
@@ -126,16 +119,6 @@ class AbstractDistributeTask extends AbstractXcodeTask {
 			throw new IllegalStateException("No xcarchive found")
 		}
 		return new File(archiveDirectory, fileList.get(0))
-
 	}
-
-	def getApplicationNameFromArchive() {
-		return getArchiveDirectory().name - ".xcarchive"
-	}
-
-
-
-
-
 
 }
